@@ -19,7 +19,7 @@ class HmyBidderLog:
 
     @classmethod
     def setLogFileLocation(self, logfileLocation):
-        print(f"Logfile {logfileLocation}")
+        #print(f"Logfile {logfileLocation}")
         if logfileLocation != '' and logfileLocation.endswith('.log'):
             logging.basicConfig(filename=logfileLocation, level=logging.DEBUG, format='%(asctime)s.%(msecs)03d : %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         else:

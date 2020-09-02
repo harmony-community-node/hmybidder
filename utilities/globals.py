@@ -1,13 +1,16 @@
 import random
 
 class Globals:
+    _hmyDirectory = '~/hmydir'
     _walletAddress = ''
     _defaultLogfile = 'hmybidder.log'
+    _blsdirPath = '~/blsdir'
     _scriptVersion = 'v1.0'
     _epochBlock = random.randint(100, 200)
     _walletPassFile = 'wallet.pass'
     _network_type = 'mainnet'
     _oneAmountDenominator = 1000000000000000000
+    _numberOfSecondsForEpoch = 7.5
 
     _network_end_points = {
         'mainnet' : 'https://api.s0.t.hmny.io',
