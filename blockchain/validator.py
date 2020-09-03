@@ -1,10 +1,10 @@
 from pyhmy import account, staking, blockchain
 from utilities.globals import Globals
 from utilities.hmybidder_logger import HmyBidderLog
-from models import NetworkInfo
+from models import NetworkInfo, ValidatorInfo, BlsKey
 import requests
 
-class ValidatorInfo:
+class Validator:
 
     @classmethod
     def getTotalStakedToValidator(self, validatorAddress):
@@ -21,6 +21,32 @@ class ValidatorInfo:
             return (totalDelegation / Globals._oneAmountDenominator)
     
     @classmethod
+    def getValidatorInfo(self, validatorAddress):
+        validator_info = None
+        try:
+            jsonResponse = staking.get_validator_information(validatorAddress, Globals.getHmyNetworkUrl())
+            #print(jsonResponse)
+            activeStatus = ''
+            if 'active-status' in jsonResponse:
+                activeStatus = jsonResponse['active-status']
+            eposStatus = ''
+            if 'epos-status' in jsonResponse:
+                eposStatus = jsonResponse['epos-status']
+            totalDelegation = 0
+            if 'total-delegation' in jsonResponse:
+                totalDelegation = float(jsonResponse['total-delegation'])
+            blsKeys = []
+            if 'metrics' in jsonResponse:
+                if 'by-bls-key' in jsonResponse['metrics']:
+                    for bKey in jsonResponse['metrics']['by-bls-key']:
+                        blsKeys.append(BlsKey(bKey['key']['bls-public-key'], bKey['key']['shard-id']))
+            validator_info = ValidatorInfo(activeStatus, eposStatus, totalDelegation, blsKeys)
+        except Exception as ex:
+            HmyBidderLog.error(ex)
+        finally:
+            return validator_info
+    
+    @classmethod
     def validateONEAddress(self, oneAddress):
         valid = False
         try:
@@ -31,16 +57,15 @@ class ValidatorInfo:
             return valid
     
     @classmethod
-    def getNetworkLatestInfo(self):
-
+    def getNetworkLatestInfo(self) -> NetworkInfo:
+        url = Globals.getHmyNetworkUrl()
         block_number = 0
         try:
-            block_number = blockchain.get_block_number(Globals.getHmyNetworkUrl())
+            block_number = blockchain.get_block_number(url)
             #print(f"Block Number {block_number}")
         except Exception as ex:
             HmyBidderLog.error(ex)
 
-        url = Globals.getHmyNetworkUrl()
         try:
             response = staking.get_staking_network_info(url)
             #print(response)

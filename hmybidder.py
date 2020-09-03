@@ -1,14 +1,13 @@
 import sys
 from sys import argv
-import subprocess
-import json
 from os import listdir
 from os.path import isfile, join
 from utilities.hmybidder_logger import HmyBidderLog
 import argparse
 from utilities.globals import Globals
-from blockchain.validator import ValidatorInfo
-from models import NetworkInfo
+from blockchain.validator import Validator
+from models import NetworkInfo, ValidatorInfo
+from bidder.biddingcalculator import BiddingCalculator
 
 opts = {    
 }
@@ -20,7 +19,7 @@ def main(bidArgs):
 
     if 'wallet.address' in opts:
         Globals._walletAddress = opts['wallet.address']
-        if not ValidatorInfo.validateONEAddress(Globals._walletAddress):
+        if not Validator.validateONEAddress(Globals._walletAddress):
             HmyBidderLog.error('Wallet Address is in wrong format, please verify')
             return            
 
@@ -30,9 +29,13 @@ def main(bidArgs):
 
     HmyBidderLog.info('Start the Harmony validator bidder script')
 
+    numberOfBlsKeys = BiddingCalculator.calculateBlsKeysForNextEpoch()
+    print(f'numberOfBlsKeys - {numberOfBlsKeys}')
     #network_info = ValidatorInfo.getNetworkLatestInfo()
     #if network_info != None:
     #    print(network_info.to_dict())
+    validator_info = Validator.getValidatorInfo(Globals._walletAddress)
+    print(len(validator_info.blsKeys))
 
 def validateShardKey(shardKeys):
     valid = False
@@ -42,28 +45,23 @@ def validateShardKey(shardKeys):
         keysOnShardOne = []
         keysOnShardTwo = []
         keysOnShardThree = []
-        blskeyFiles = []
-        hmyDir = Globals._hmyDirectory
-        nodeUrl = Globals.getHmyNetworkUrl()
         try:
             for f in listdir(Globals._blsdirPath):
                 if isfile(join(Globals._blsdirPath, f)):
                     if f.endswith(".key"):
-                        blskeyFiles.append(f)
-                        proc = subprocess.Popen(f'{hmyDir}/./hmy --node="{nodeUrl}" utility shard-for-bls {f.replace(".key", "")}', stdout=subprocess.PIPE, shell=True)
-                        (out, err) = proc.communicate()
-                        if err == None:
-                            response = json.loads(out)
-                            if response['shard-id'] == 0:
-                                keysOnShardZero.append(f.replace(".key", ""))
-                            elif response['shard-id'] == 1:
-                                keysOnShardOne.append(f.replace(".key", ""))
-                            elif response['shard-id'] == 2:
-                                keysOnShardTwo.append(f.replace(".key", ""))
-                            elif response['shard-id'] == 3:
-                                keysOnShardThree.append(f.replace(".key", ""))
+                        blsKey = f.replace(".key", "")
+                        shard = int(Globals.getShardForBlsKey(blsKey))
+                        if shard != -1:
+                            if shard == 0:
+                                keysOnShardZero.append(blsKey)
+                            elif shard == 1:
+                                keysOnShardOne.append(blsKey)
+                            elif shard == 2:
+                                keysOnShardTwo.append(blsKey)
+                            elif shard == 3:
+                                keysOnShardThree.append(blsKey)
                         else:
-                            HmyBidderLog.error(err)
+                            HmyBidderLog.error(f" Error while getting the Shard for BLS Key {blsKey}")
             if int(parts[1]) <= len(keysOnShardZero) and int(parts[3]) <= len(keysOnShardOne) and int(parts[5]) <= len(keysOnShardTwo) and int(parts[7]) < len(keysOnShardThree):
                 valid = True
             else:
@@ -93,8 +91,8 @@ def getopts(argv):
                     Globals._blsdirPath = argv[1]
                 elif argv[0].lower() == '--shards.keys':
                     opts['shards.keys'] = argv[1]
-                    if not validateShardKey(argv[1]):
-                        HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
+                    #if not validateShardKey(argv[1]):
+                    #    HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
                 elif argv[0].lower() == '--wallet.address':
                     opts['wallet.address'] = argv[1]
                 elif argv[0].lower() == '--wallet.passfile':
@@ -105,6 +103,10 @@ def getopts(argv):
                     Globals._epochblock = int(argv[1])
                 elif argv[0].lower() == '--leverage':
                     opts['leverage'] = int(argv[1])
+                    if int(argv[1]) != 0:
+                        Globals._leverage = int(argv[1])
+                    else:
+                        Globals._leverage = 0
         except Exception as ex:
             print(f'Command line input error {ex}')
         finally:

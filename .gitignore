@@ -2,3 +2,4 @@ resources/
 __pycache__/
 blockchain/__pycache__/
 utilities/__pycache__/
+hmybidder.log
