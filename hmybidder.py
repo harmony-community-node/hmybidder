@@ -8,24 +8,12 @@ from utilities.globals import Globals
 from blockchain.validator import Validator
 from models import NetworkInfo, ValidatorInfo
 from bidder.biddingcalculator import BiddingCalculator
+from blockchain.hmyclient import HmyClient
 
-opts = {    
-}
 
-def main(bidArgs):
-    #print(bidArgs)
-    #if 'version' in opts:
-        #print(f'Script version : {Globals._scriptVersion}')
+version = 'v1.0.0'
 
-    if 'wallet.address' in opts:
-        Globals._walletAddress = opts['wallet.address']
-        if not Validator.validateONEAddress(Globals._walletAddress):
-            HmyBidderLog.error('Wallet Address is in wrong format, please verify')
-            return            
-
-    if Globals._walletAddress == '':
-        HmyBidderLog.error('Wallet Address is missing, stopping the script')
-        return
+def main():
 
     HmyBidderLog.info('Start the Harmony validator bidder script')
 
@@ -41,28 +29,29 @@ def validateShardKey(shardKeys):
     valid = False
     parts = shardKeys.split(" ")
     if len(parts) == 8:
-        keysOnShardZero = []
-        keysOnShardOne = []
-        keysOnShardTwo = []
-        keysOnShardThree = []
         try:
             for f in listdir(Globals._blsdirPath):
                 if isfile(join(Globals._blsdirPath, f)):
                     if f.endswith(".key"):
                         blsKey = f.replace(".key", "")
-                        shard = int(Globals.getShardForBlsKey(blsKey))
+                        shard = int(HmyClient.getShardForBlsKey(blsKey))
                         if shard != -1:
                             if shard == 0:
-                                keysOnShardZero.append(blsKey)
+                                if not blsKey in Globals._shardsKeys['shard0']:
+                                    Globals._shardsKeys['shard0'].append(blsKey)
                             elif shard == 1:
-                                keysOnShardOne.append(blsKey)
+                                if not blsKey in Globals._shardsKeys['shard1']:
+                                    Globals._shardsKeys['shard1'].append(blsKey)
                             elif shard == 2:
-                                keysOnShardTwo.append(blsKey)
+                                if not blsKey in Globals._shardsKeys['shard2']:
+                                    Globals._shardsKeys['shard2'].append(blsKey)
                             elif shard == 3:
-                                keysOnShardThree.append(blsKey)
+                                if not blsKey in Globals._shardsKeys['shard3']:
+                                    Globals._shardsKeys['shard3'].append(blsKey)
                         else:
                             HmyBidderLog.error(f" Error while getting the Shard for BLS Key {blsKey}")
-            if int(parts[1]) <= len(keysOnShardZero) and int(parts[3]) <= len(keysOnShardOne) and int(parts[5]) <= len(keysOnShardTwo) and int(parts[7]) < len(keysOnShardThree):
+            #print(f'{len(Globals._shardsKeys["shard0"])} - {len(Globals._shardsKeys["shard1"])} - {len(Globals._shardsKeys["shard2"])} - {len(Globals._shardsKeys["shard3"])}')
+            if int(parts[1]) <= len(Globals._shardsKeys['shard0']) and int(parts[3]) <= len(Globals._shardsKeys['shard1']) and int(parts[5]) <= len(Globals._shardsKeys['shard2']) and int(parts[7]) <= len(Globals._shardsKeys['shard3']):
                 valid = True
             else:
                 valid = False
@@ -78,31 +67,33 @@ def getopts(argv):
         try:
             if argv[0][0] == '-':  
                 if argv[0].lower() == '-n' or argv[0].lower() == '--network':
-                    opts['network'] = argv[1]
+                    Globals._network_type = argv[1]
                 elif argv[0].lower() == '-v' or argv[0].lower() == '--version':
-                    opts['version'] = "True"
+                    print(f'Version {version}')
                 elif argv[0].lower() == '-h' or argv[0].lower() == '--help':
-                    opts['help'] = "True"
+                    # TODO : Prepare Help
+                    print(f'Help')
                 elif argv[0].lower() == '--logfile':
-                    opts['logfile'] = argv[1]
-                    HmyBidderLog.setLogFileLocation(opts['logfile'])
+                    Globals._logFile = argv[1]
+                    HmyBidderLog.setLogFileLocation(Globals._logFile)
                 elif argv[0].lower() == '--blsdir':
-                    opts['blsdir'] = argv[1]
                     Globals._blsdirPath = argv[1]
+                elif argv[0].lower() == '--hmydir':
+                    Globals._hmyDirectory = argv[1]
                 elif argv[0].lower() == '--shards.keys':
-                    opts['shards.keys'] = argv[1]
-                    #if not validateShardKey(argv[1]):
-                    #    HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
+                    if not validateShardKey(argv[1]):
+                        HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
+                        return False
                 elif argv[0].lower() == '--wallet.address':
-                    opts['wallet.address'] = argv[1]
+                    Globals._walletAddress = argv[1]
+                    if not Validator.validateONEAddress(Globals._walletAddress):
+                        HmyBidderLog.error('Wallet Address is in wrong format, please verify')
+                        return False
                 elif argv[0].lower() == '--wallet.passfile':
-                    opts['wallet.passfile'] = argv[1]
                     Globals._walletPassFile = argv[1]
                 elif argv[0].lower() == '--epochblock':
-                    opts['epochblock'] = argv[1]
                     Globals._epochblock = int(argv[1])
                 elif argv[0].lower() == '--leverage':
-                    opts['leverage'] = int(argv[1])
                     if int(argv[1]) != 0:
                         Globals._leverage = int(argv[1])
                     else:
@@ -111,8 +102,12 @@ def getopts(argv):
             print(f'Command line input error {ex}')
         finally:
             argv = argv[1:]
-    return opts
+        
+    if Globals._walletAddress == '':
+        HmyBidderLog.error('Wallet Address is missing, stopping the script')
+        return False
+    return True
 
 if __name__ == '__main__':
-    bidArgs = getopts(argv)
-    main(bidArgs)
+    if getopts(argv):
+        main()

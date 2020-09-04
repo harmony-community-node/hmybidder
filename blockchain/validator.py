@@ -79,3 +79,17 @@ class Validator:
                 return None
         except Exception as ex:
             HmyBidderLog.error(ex)
+    
+    @classmethod
+    def getMedianRawStakeSnapshot(self) -> NetworkInfo:
+        url = Globals.getHmyNetworkUrl()
+        median_raw_stake_snapshot = {}
+        try:
+            median_raw_stake_snapshot = staking.get_raw_median_stake_snapshot(url)
+            #print(response)
+            if median_raw_stake_snapshot != None and not 'error' in median_raw_stake_snapshot:
+                return median_raw_stake_snapshot
+            else:
+                return None
+        except Exception as ex:
+            HmyBidderLog.error(ex)

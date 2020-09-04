@@ -1,10 +1,10 @@
 import random
-import subprocess
-import json
 from utilities.hmybidder_logger import HmyBidderLog
 
 class Globals:
+    _totalSlots = 640
     _hmyDirectory = '~/hmydir'
+    _logFile = ''
     _walletAddress = ''
     _defaultLogfile = 'hmybidder.log'
     _blsdirPath = '~/blsdir'
@@ -15,6 +15,12 @@ class Globals:
     _oneAmountDenominator = 1000000000000000000
     _numberOfSecondsForEpoch = 7.5
     _leverage = 0
+    _shardsKeys = {
+        'shard0' : [],
+        'shard1' : [],
+        'shard2' : [],
+        'shard3' : []
+    }
 
     _network_end_points = {
         'mainnet' : 'https://api.s0.t.hmny.io',
@@ -32,18 +38,3 @@ class Globals:
         # Return Main Net URL if invalid network parameter
         return self._network_end_points['mainnet']
     
-    @classmethod
-    def getShardForBlsKey(self, key):
-        shard = -1
-        hmyDir = Globals._hmyDirectory
-        nodeUrl = Globals.getHmyNetworkUrl()
-        try:
-            proc = subprocess.Popen(f'{hmyDir}/./hmy --node="{nodeUrl}" utility shard-for-bls {key}', stdout=subprocess.PIPE, shell=True)
-            (out, err) = proc.communicate()
-            if err == None:
-                response = json.loads(out)
-                shard = response['shard-id']
-        except Exception as ex:
-            HmyBidderLog.error(ex)
-        finally:
-            return shard
