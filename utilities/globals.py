@@ -15,6 +15,7 @@ class Globals:
     _oneAmountDenominator = 1000000000000000000
     _numberOfSecondsForEpoch = 7.5
     _leverage = 0
+    _numberOfShards = 4
     _shardsKeys = {
         'shard0' : [],
         'shard1' : [],

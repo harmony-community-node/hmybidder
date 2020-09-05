@@ -16,7 +16,7 @@ class Validator:
             if 'total-delegation' in validator_info:
                 totalDelegation = validator_info['total-delegation']
         except Exception as ex:
-            HmyBidderLog.error(ex)
+            HmyBidderLog.error(f'Validator getTotalStakedToValidator {ex}')
         finally:
             return (totalDelegation / Globals._oneAmountDenominator)
     
@@ -37,12 +37,13 @@ class Validator:
                 totalDelegation = float(jsonResponse['total-delegation'])
             blsKeys = []
             if 'metrics' in jsonResponse:
-                if 'by-bls-key' in jsonResponse['metrics']:
-                    for bKey in jsonResponse['metrics']['by-bls-key']:
-                        blsKeys.append(BlsKey(bKey['key']['bls-public-key'], bKey['key']['shard-id']))
+                if jsonResponse['metrics'] != None:
+                    if 'by-bls-key' in jsonResponse['metrics']:
+                        for bKey in jsonResponse['metrics']['by-bls-key']:
+                            blsKeys.append(BlsKey(bKey['key']['bls-public-key'], bKey['key']['shard-id']))
             validator_info = ValidatorInfo(activeStatus, eposStatus, totalDelegation, blsKeys)
         except Exception as ex:
-            HmyBidderLog.error(ex)
+            HmyBidderLog.error(f'Validator getValidatorInfo {ex}')
         finally:
             return validator_info
     
@@ -52,7 +53,7 @@ class Validator:
         try:
             valid = account.is_valid_address(oneAddress)
         except Exception as ex:
-            HmyBidderLog.error(ex)
+            HmyBidderLog.error(f'Validator validateONEAddress {ex}')
         finally:
             return valid
     
@@ -64,7 +65,7 @@ class Validator:
             block_number = blockchain.get_block_number(url)
             #print(f"Block Number {block_number}")
         except Exception as ex:
-            HmyBidderLog.error(ex)
+            HmyBidderLog.error(f'Validator getNetworkLatestInfo get_block_number {ex}')
 
         try:
             response = staking.get_staking_network_info(url)
@@ -78,7 +79,7 @@ class Validator:
             else:
                 return None
         except Exception as ex:
-            HmyBidderLog.error(ex)
+            HmyBidderLog.error(f'Validator getNetworkLatestInfo get network info {ex}')
     
     @classmethod
     def getMedianRawStakeSnapshot(self) -> NetworkInfo:
@@ -92,4 +93,4 @@ class Validator:
             else:
                 return None
         except Exception as ex:
-            HmyBidderLog.error(ex)
+            HmyBidderLog.error(f'Validator getMedianRawStakeSnapshot {ex}')

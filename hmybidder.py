@@ -5,25 +5,21 @@ from os.path import isfile, join
 from utilities.hmybidder_logger import HmyBidderLog
 import argparse
 from utilities.globals import Globals
-from blockchain.validator import Validator
 from models import NetworkInfo, ValidatorInfo
-from bidder.biddingcalculator import BiddingCalculator
 from blockchain.hmyclient import HmyClient
-
+from bidder.bidderclient import HMYBidder
+from blockchain.validator import Validator
 
 version = 'v1.0.0'
 
 def main():
 
     HmyBidderLog.info('Start the Harmony validator bidder script')
-
-    numberOfBlsKeys = BiddingCalculator.calculateBlsKeysForNextEpoch()
-    print(f'numberOfBlsKeys - {numberOfBlsKeys}')
-    #network_info = ValidatorInfo.getNetworkLatestInfo()
-    #if network_info != None:
-    #    print(network_info.to_dict())
-    validator_info = Validator.getValidatorInfo(Globals._walletAddress)
-    print(len(validator_info.blsKeys))
+    network_info = Validator.getNetworkLatestInfo()
+    if network_info != None:
+        print(network_info.to_dict())
+        HMYBidder.startBiddingProcess(network_info)
+        
 
 def validateShardKey(shardKeys):
     valid = False
@@ -56,7 +52,7 @@ def validateShardKey(shardKeys):
             else:
                 valid = False
         except Exception as ex:
-            HmyBidderLog.error(ex)
+            HmyBidderLog.error(f'Hmybidder getMedianRawStakeSnapshot {ex}')
             valid = False
         finally:
             return valid        
