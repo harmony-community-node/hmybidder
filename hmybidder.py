@@ -2,6 +2,7 @@ import sys
 from sys import argv
 from os import listdir
 from os.path import isfile, join
+import threading
 from utilities.hmybidder_logger import HmyBidderLog
 import argparse
 from utilities.globals import Globals
@@ -18,7 +19,11 @@ def main():
     network_info = Validator.getNetworkLatestInfo()
     if network_info != None:
         print(network_info.to_dict())
-        HMYBidder.startBiddingProcess(network_info)
+        curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
+        if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 5, Globals._epochBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
+            HMYBidder.startBiddingProcess(network_info)
+            Globals._currentEpoch = Validator.getCurrentEpoch() # reset current epoch after running the bidding process
+    #threading.Timer(60.0, main).start() #Keep running the process every 60 seconds
         
 
 def validateShardKey(shardKeys):

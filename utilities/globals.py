@@ -10,6 +10,7 @@ class Globals:
     _blsdirPath = '~/blsdir'
     _scriptVersion = 'v1.0'
     _epochBlock = random.randint(100, 200)
+    _currentEpoch = 0
     _walletPassFile = 'wallet.pass'
     _network_type = 'mainnet'
     _oneAmountDenominator = 1000000000000000000

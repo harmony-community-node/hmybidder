@@ -58,6 +58,18 @@ class Validator:
             return valid
     
     @classmethod
+    def getCurrentEpoch(self) -> int:
+        url = Globals.getHmyNetworkUrl()
+        epoch_number = 0
+        try:
+            epoch_number = blockchain.get_current_epoch(url)
+            #print(f"Block Number {block_number}")
+        except Exception as ex:
+            HmyBidderLog.error(f'Validator getCurrentEpoch get_block_number {ex}')
+        finally:
+            return epoch_number
+
+    @classmethod
     def getNetworkLatestInfo(self) -> NetworkInfo:
         url = Globals.getHmyNetworkUrl()
         block_number = 0
