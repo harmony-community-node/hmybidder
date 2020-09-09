@@ -3,17 +3,12 @@ from utilities.hmybidder_logger import HmyBidderLog
 from subprocess import PIPE, Popen
 import simplejson
 import os
+import os.path
 
 class HmyClientError(Exception):
     pass
 
 class HmyClient:
-
-    __baseParameter =  ["./hmy", "--node", Globals.getHmyNetworkUrl(), "staking", "edit-validator",
-            "--validator-addr", Globals._walletAddress,
-            "--passphrase-file", Globals._walletPassFile,
-            "--bls-pubkeys-dir", Globals._blsdirPath,
-            "--true-nonce"]
 
     @classmethod
     def __executeCommand(self, args):
@@ -32,6 +27,21 @@ class HmyClient:
             raise HmyClientError(output)
 
     @classmethod
+    def __getParameters(self, blskey):
+        baseParameters =  ["./hmy", "--node", Globals.getHmyNetworkUrl(), "staking", "edit-validator",
+            "--validator-addr", Globals._walletAddress,
+            "--bls-pubkeys-dir", Globals._blsdirPath,
+            "--true-nonce"]
+        passFile = f'{Globals._blsdirPath}/{blskey}.pass'
+        if os.path.exists(passFile):
+            baseParameters = baseParameters + ["--passphrase-file", passFile]
+        else:
+            baseParameters = baseParameters + ["--passphrase-file", '']
+        #print(baseParameters)
+        return baseParameters
+
+
+    @classmethod
     def getShardForBlsKey(self, key):
         shard = -1
         try:
@@ -47,9 +57,11 @@ class HmyClient:
     def addBlsKey(self, bls_key):
         success = False
         try:
-            response = HmyClient.__executeCommand(self.__baseParameter + ["--add-bls-key", bls_key])
-            if 'transaction-hash' in response:
-                success = True
+            response = HmyClient.__executeCommand(self.__getParameters(bls_key) + ["--add-bls-key", bls_key])
+            #print(response)
+            if 'result' in response:
+                if 'transactionHash' in response['result']:            
+                    success = True
             return success
         except Exception as ex:
             HmyBidderLog.error(f'HmyClient addBlskey {ex}')
@@ -59,9 +71,11 @@ class HmyClient:
     def removeBlsKey(self, bls_key):
         success = False
         try:
-            response = HmyClient.__executeCommand(self.__baseParameter + ["--remove-bls-key", bls_key])
-            if 'transaction-hash' in response:
-                success = True
+            response = HmyClient.__executeCommand(self.__getParameters(bls_key) + ["--remove-bls-key", bls_key])
+            #print(response)
+            if 'result' in response:
+                if 'transactionHash' in response['result']:
+                    success = True
             return success
         except Exception as ex:
             HmyBidderLog.error(f'HmyClient removeBlskey {ex}')

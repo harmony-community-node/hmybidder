@@ -28,21 +28,24 @@ class HMYBidder:
                 HmyBidderLog.info(f'Started adding bls keys, {keysToAdd} key(s) needs to be added')
                 i = 0
                 try:
-                    while i < keysToAdd:
-                        for shardId in range(0, Globals._numberOfShards):
-                            shardKey = f'shard{shardId}'
-                            if shardKey in Globals._shardsKeys:
-                                if len(currentBlsKeys[shardKey]) < len(Globals._shardsKeys[shardKey]):
-                                    for key in Globals._shardsKeys[shardKey]:
-                                        if not key in currentBlsKeys[shardKey]:
-                                            success = HmyClient.addBlsKey(key)
-                                            if success:
-                                                currentBlsKeys[shardKey].append(key)
-                                                HmyBidderLog.info(f'blskey {key} added on Shard : {shardKey}')
-                                                break
-                                            else:
-                                                HmyBidderLog.info(f'Failed to add blskey {key} on Shard : {shardKey}')
-                        i = i + 1
+                    keysAdded = 0
+                    for shardId in range(0, Globals._numberOfShards):
+                        shardKey = f'shard{shardId}'
+                        if shardKey in Globals._shardsKeys:
+                            if len(currentBlsKeys[shardKey]) < len(Globals._shardsKeys[shardKey]):
+                                for key in Globals._shardsKeys[shardKey]:
+                                    if not key in currentBlsKeys[shardKey]:
+                                        success = HmyClient.addBlsKey(key)
+                                        if success:
+                                            currentBlsKeys[shardKey].append(key)
+                                            HmyBidderLog.info(f'blskey {key} added on Shard : {shardKey}')
+                                            keysAdded = keysAdded + 1
+                                        else:
+                                            HmyBidderLog.info(f'Failed to add blskey {key} on Shard : {shardKey}')
+                                    if keysToAdd == keysAdded:
+                                       break
+                        if keysToAdd == keysAdded:
+                            break
                 except Exception as ex:
                     HmyBidderLog.error(f'StartBidding Process Add Key {ex}')
                     
@@ -51,19 +54,22 @@ class HMYBidder:
                 HmyBidderLog.info(f'Started removing bls keys, {keysToRemove} key(s) needs to be added')
                 i = 0
                 try:
-                    while i < keysToRemove:
-                        for shardId in range(0, Globals._numberOfShards):
-                            shardKey = f'shard{shardId}'
-                            if len(currentBlsKeys[shardKey]) > 0:
-                                key = currentBlsKeys[shardKey][0]
+                    keysRemoved = 0
+                    for shardId in range(0, Globals._numberOfShards):
+                        shardKey = f'shard{shardId}'
+                        if len(currentBlsKeys[shardKey]) > 0:
+                            for key in currentBlsKeys[shardKey]:
                                 success = HmyClient.removeBlsKey(key)
                                 if success:
                                     currentBlsKeys[shardKey].remove(key)
                                     HmyBidderLog.info(f'blskey {key} removed on Shard : {shardKey}')
-                                    break
+                                    keysRemoved = keysRemoved + 1
                                 else:
                                     HmyBidderLog.info(f'Failed to remove blskey {key} on Shard : {shardKey}')
-                        i = i + 1
+                                if keysToRemove == keysRemoved:
+                                    break
+                        if keysToRemove == keysRemoved:
+                            break
                 except Exception as ex:
                     HmyBidderLog.error(f'StartBidding Process Remove Key {ex}')
             logString = 'Blskeys : '

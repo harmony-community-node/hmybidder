@@ -20,7 +20,8 @@ def main():
     if network_info != None:
         print(network_info.to_dict())
         curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
-        if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 5, Globals._epochBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
+        #if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 5, Globals._epochBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
+        if True:
             HMYBidder.startBiddingProcess(network_info)
             Globals._currentEpoch = Validator.getCurrentEpoch() # reset current epoch after running the bidding process
     #threading.Timer(60.0, main).start() #Keep running the process every 60 seconds
@@ -64,16 +65,18 @@ def validateShardKey(shardKeys):
     
 
 def getopts(argv):
+    showHelp = False
+    showVersion = False
     while argv:  
         try:
             if argv[0][0] == '-':  
                 if argv[0].lower() == '-n' or argv[0].lower() == '--network':
                     Globals._network_type = argv[1]
                 elif argv[0].lower() == '-v' or argv[0].lower() == '--version':
-                    print(f'Version {version}')
+                    showVersion = True                    
                 elif argv[0].lower() == '-h' or argv[0].lower() == '--help':
                     # TODO : Prepare Help
-                    print(f'Help')
+                    showHelp = True
                 elif argv[0].lower() == '--logfile':
                     Globals._logFile = argv[1]
                     HmyBidderLog.setLogFileLocation(Globals._logFile)
@@ -103,8 +106,12 @@ def getopts(argv):
             print(f'Command line input error {ex}')
         finally:
             argv = argv[1:]
-        
-    if Globals._walletAddress == '':
+    
+    if showHelp:
+        print(f'Print Help')
+    elif showVersion:
+        print(f'Version {version}')
+    elif Globals._walletAddress == '':
         HmyBidderLog.error('Wallet Address is missing, stopping the script')
         return False
     return True
