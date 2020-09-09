@@ -20,8 +20,7 @@ def main():
     if network_info != None:
         print(network_info.to_dict())
         curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
-        #if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 5, Globals._epochBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
-        if True:
+        if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 5, Globals._epochBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
             HMYBidder.startBiddingProcess(network_info)
             Globals._currentEpoch = Validator.getCurrentEpoch() # reset current epoch after running the bidding process
     #threading.Timer(60.0, main).start() #Keep running the process every 60 seconds
@@ -93,6 +92,9 @@ def getopts(argv):
                     if not Validator.validateONEAddress(Globals._walletAddress):
                         HmyBidderLog.error('Wallet Address is in wrong format, please verify')
                         return False
+                    if not HmyClient.checkIfAccountofWalletAddressExists(Globals._walletAddress):
+                        HmyBidderLog.error('Wallet Address is not in wallet accounts')
+                        #return False 
                 elif argv[0].lower() == '--wallet.passfile':
                     Globals._walletPassFile = argv[1]
                 elif argv[0].lower() == '--epochblock':

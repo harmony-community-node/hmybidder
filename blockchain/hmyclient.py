@@ -1,6 +1,7 @@
 from utilities.globals import Globals
 from utilities.hmybidder_logger import HmyBidderLog
 from subprocess import PIPE, Popen
+import json
 import simplejson
 import os
 import os.path
@@ -53,6 +54,23 @@ class HmyClient:
             HmyBidderLog.error(f'HmyClient getShardForBlsKey {ex}')
             return shard
     
+    @classmethod
+    def checkIfAccountofWalletAddressExists(self, walletAddress):
+        exists = False
+        try:
+            nodeUrl = Globals.getHmyNetworkUrl()
+            response = HmyClient.__executeCommand(['./hmy', '--node', nodeUrl, 'keys', 'list'])
+            print(response)
+            if walletAddress in json.dumps(response):
+                exists = True
+            return exists
+        except Exception as ex:
+            if walletAddress in str(ex):
+                return True
+            else:
+                HmyBidderLog.error(f'HmyClient checkIfAccountofWalletAddressExists {ex}')
+                return exists
+
     @classmethod
     def addBlsKey(self, bls_key):
         success = False
