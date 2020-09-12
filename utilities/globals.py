@@ -12,6 +12,7 @@ class Globals:
     _epochBlock = random.randint(100, 200)
     _currentEpoch = 0
     _walletPassFile = 'wallet.pass'
+    _passphraseFile = ''
     _network_type = 'mainnet'
     _oneAmountDenominator = 1000000000000000000
     _numberOfSecondsForEpoch = 7.5

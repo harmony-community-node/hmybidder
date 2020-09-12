@@ -9,7 +9,7 @@ class HMYBidder:
     @classmethod
     def startBiddingProcess(self, network_info):
         requiredBlsKeysCount = BiddingCalculator.calculateBlsKeysForNextEpoch(network_info)
-        #print(f'numberOfBlsKeys - {numberOfBlsKeys}')
+        #print(f'numberOfBlsKeys - {requiredBlsKeysCount}')
         validator_info = Validator.getValidatorInfo(Globals._walletAddress)
         if validator_info != None:
             currentBlsKeysCount = len(validator_info.blsKeys)

@@ -33,11 +33,8 @@ class HmyClient:
             "--validator-addr", Globals._walletAddress,
             "--bls-pubkeys-dir", Globals._blsdirPath,
             "--true-nonce"]
-        passFile = f'{Globals._blsdirPath}/{blskey}.pass'
-        if os.path.exists(passFile):
-            baseParameters = baseParameters + ["--passphrase-file", passFile]
-        else:
-            baseParameters = baseParameters + ["--passphrase-file", '']
+        if os.path.exists(Globals._passphraseFile):
+            baseParameters = baseParameters + ["--passphrase-file", Globals._passphraseFile]
         #print(baseParameters)
         return baseParameters
 
