@@ -1,0 +1,19 @@
+[Unit]
+Description=Harmony Validator Bidder Script
+After=network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=satish
+WorkingDirectory=/home/root/MyWork/hmybidder
+EnvironmentFile=/home/root/MyWork/hmybidder/.hmybidderconfig
+ExecStart=/usr/bin/python3 /home/root/MyWork/hmybidder/hmybidder.py --network $Network --logfile $LogFilePath --blsdir $BLSDir --hmydir $HMYDir  --wallet.address $ONEADDRESS --leverage $Leverage --shards.keys $ShardKeys --passphrase-file $PassphraseFile --slots $Slots --epoch-block $EpochBlock
+SyslogIdentifier=hmybidder
+StartLimitInterval=0
+LimitNOFILE=65536
+LimitNPROC=65536
+
+[Install]
+WantedBy=multi-user.target
