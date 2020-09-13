@@ -18,7 +18,7 @@ def main():
     HmyBidderLog.info('Start the Harmony validator bidder script')
     network_info = Validator.getNetworkLatestInfo()
     if network_info != None:
-        print(network_info.to_dict())
+        HmyBidderLog.info(network_info.to_dict())
         curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
         if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 5, Globals._epochBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
         #if True:
@@ -29,7 +29,7 @@ def main():
 
 def validateShardKey(shardKeys):
     valid = False
-    parts = shardKeys.split(" ")
+    parts = shardKeys.split(":")
     if len(parts) == 8:
         try:
             for f in listdir(Globals._blsdirPath):
@@ -105,6 +105,10 @@ def getopts(argv):
                         Globals._leverage = int(argv[1])
                     else:
                         Globals._leverage = 0
+                elif argv[0].lower() == '--slots':
+                    Globals._totalSlots = int(argv[1])
+                    if Globals._totalSlots < 640:
+                        Globals._totalSlots = 640
         except Exception as ex:
             print(f'Command line input error {ex}')
         finally:
