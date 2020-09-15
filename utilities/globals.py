@@ -1,4 +1,3 @@
-import random
 from utilities.hmybidder_logger import HmyBidderLog
 
 class Globals:
@@ -9,7 +8,7 @@ class Globals:
     _defaultLogfile = 'hmybidder.log'
     _blsdirPath = '~/blsdir'
     _scriptVersion = 'v1.0'
-    _epochBlock = random.randint(100, 200)
+    _epochBlock = None
     _currentEpoch = 0
     _walletPassFile = 'wallet.pass'
     _passphraseFile = ''
@@ -18,6 +17,7 @@ class Globals:
     _numberOfSecondsForEpoch = 7.5
     _leverage = 0
     _numberOfShards = 4
+    _configFile = ''
     _shardsKeys = {
         'shard0' : [],
         'shard1' : [],

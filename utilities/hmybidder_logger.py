@@ -15,13 +15,13 @@ class HmyBidderLog:
     def initializeLogger(self):
         if not os.path.exists(logDir):
             os.makedirs(logDir)
-        logging.basicConfig(filename=f'{logDir}/{logfile}', level=logging.DEBUG, format='%(asctime)s.%(msecs)03d : %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        logging.basicConfig(filename=f'{logDir}/{logfile}', level=logging.INFO, format='%(asctime)s.%(msecs)03d : %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     @classmethod
     def setLogFileLocation(self, logfileLocation):
         #print(f"Logfile {logfileLocation}")
         if logfileLocation != '' and logfileLocation.endswith('.log'):
-            logging.basicConfig(filename=logfileLocation, level=logging.DEBUG, format='%(asctime)s.%(msecs)03d : %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+            logging.basicConfig(filename=logfileLocation, level=logging.INFO, format='%(asctime)s.%(msecs)03d : %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         else:
             raise Exception('Log File Exception', 'Invalid Logfile location')
 

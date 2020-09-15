@@ -54,9 +54,8 @@ class HMYBidder:
                     HmyBidderLog.error(f'StartBidding Process Add Key {ex}')
                     
             elif currentBlsKeysCount > requiredBlsKeysCount:
-                keysToRemove = requiredBlsKeysCount - currentBlsKeysCount
-                HmyBidderLog.info(f'Started removing bls keys, {keysToRemove} key(s) needs to be added')
-                i = 0
+                keysToRemove = abs(requiredBlsKeysCount - currentBlsKeysCount)
+                HmyBidderLog.info(f'Started removing bls keys, {keysToRemove} key(s) needs to be removed')
                 try:
                     keysRemoved = 0
                     for shardId in range(0, Globals._numberOfShards):

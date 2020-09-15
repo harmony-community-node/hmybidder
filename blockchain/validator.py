@@ -2,6 +2,7 @@ from pyhmy import account, staking, blockchain
 from utilities.globals import Globals
 from utilities.hmybidder_logger import HmyBidderLog
 from models import NetworkInfo, ValidatorInfo, BlsKey
+from blockchain.hmyclient import HmyClient
 import requests
 
 class Validator:
@@ -36,11 +37,12 @@ class Validator:
             if 'total-delegation' in jsonResponse:
                 totalDelegation = float(jsonResponse['total-delegation'])
             blsKeys = []
-            if 'metrics' in jsonResponse:
-                if jsonResponse['metrics'] != None:
-                    if 'by-bls-key' in jsonResponse['metrics']:
-                        for bKey in jsonResponse['metrics']['by-bls-key']:
-                            blsKeys.append(BlsKey(bKey['key']['bls-public-key'], bKey['key']['shard-id']))
+            if 'validator' in jsonResponse:
+                if jsonResponse['validator'] != None:
+                    if 'bls-public-keys' in jsonResponse['validator']:
+                        for bKey in jsonResponse['validator']['bls-public-keys']:
+                            sId = HmyClient.getShardForBlsKey(bKey)
+                            blsKeys.append(BlsKey(bKey, sId))
             validator_info = ValidatorInfo(activeStatus, eposStatus, totalDelegation, blsKeys)
         except Exception as ex:
             HmyBidderLog.error(f'Validator getValidatorInfo {ex}')
@@ -99,7 +101,7 @@ class Validator:
         median_raw_stake_snapshot = {}
         try:
             median_raw_stake_snapshot = staking.get_raw_median_stake_snapshot(url)
-            #print(response)
+            #print(median_raw_stake_snapshot)
             if median_raw_stake_snapshot != None and not 'error' in median_raw_stake_snapshot:
                 return median_raw_stake_snapshot
             else:

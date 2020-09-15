@@ -38,6 +38,13 @@ class HmyClient:
         #print(baseParameters)
         return baseParameters
 
+    @classmethod
+    def stopSystemdService(self, serviceName):
+        try:
+            HmyClient.__executeCommand(['systemctl', 'stop', serviceName])
+            HmyBidderLog.error(f'Stopping the {serviceName}')
+        except Exception as ex:
+            HmyBidderLog.error(f'HmyClient stopSystemService {ex}')
 
     @classmethod
     def getShardForBlsKey(self, key):

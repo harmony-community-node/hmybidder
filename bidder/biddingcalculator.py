@@ -10,6 +10,6 @@ class BiddingCalculator:
         median_stake = network_info.median_raw_staking
         if Globals._leverage != 0:
             median_stake = median_stake + ((median_stake * Globals._leverage) / 100)
-        
+        print(f'median stake {median_stake} total stake {totalStaked} leverage {((median_stake * Globals._leverage) / 100)}')  
         return int(totalStaked / median_stake)
 

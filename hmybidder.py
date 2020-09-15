@@ -1,10 +1,13 @@
 import sys
+import time
+import random
+import argparse
+import threading
+import configparser
 from sys import argv
 from os import listdir
-from os.path import isfile, join
-import threading
+from os.path import isfile, join, exists
 from utilities.hmybidder_logger import HmyBidderLog
-import argparse
 from utilities.globals import Globals
 from models import NetworkInfo, ValidatorInfo
 from blockchain.hmyclient import HmyClient
@@ -15,23 +18,27 @@ version = 'v1.0.0'
 
 def main():
 
-    HmyBidderLog.info('Start the Harmony validator bidder script')
     network_info = Validator.getNetworkLatestInfo()
     if network_info != None:
         HmyBidderLog.info(network_info.to_dict())
         curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
-        if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 5, Globals._epochBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
+        HmyBidderLog.info(f'Current Epoch {curretEpoch} Global Current Epoch {Globals._currentEpoch} epochBlock {Globals._epochBlock}')
+        if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 2, Globals._epochBlock + 3) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
         #if True:
+            HmyBidderLog.info('Started Evaluating the BLS Keys')
             HMYBidder.startBiddingProcess(network_info)
             Globals._currentEpoch = Validator.getCurrentEpoch() # reset current epoch after running the bidding process
     #threading.Timer(60.0, main).start() #Keep running the process every 60 seconds
-        
 
 def validateShardKey(shardKeys):
     valid = False
     parts = shardKeys.split(":")
     if len(parts) == 8:
         try:
+            Globals._shardsKeys = {}
+            for shardId in range(0, Globals._numberOfShards):
+                shardKey = f'shard{shardId}'
+                Globals._shardsKeys[shardKey] = []
             for f in listdir(Globals._blsdirPath):
                 if isfile(join(Globals._blsdirPath, f)):
                     if f.endswith(".key"):
@@ -58,7 +65,7 @@ def validateShardKey(shardKeys):
             else:
                 valid = False
         except Exception as ex:
-            HmyBidderLog.error(f'Hmybidder getMedianRawStakeSnapshot {ex}')
+            HmyBidderLog.error(f'Hmybidder validateShardKey {ex}')
             valid = False
         finally:
             return valid        
@@ -69,46 +76,56 @@ def getopts(argv):
     showVersion = False
     while argv:  
         try:
-            if argv[0][0] == '-':  
-                if argv[0].lower() == '-n' or argv[0].lower() == '--network':
-                    Globals._network_type = argv[1]
+            if argv[0][0] == '-':
+                if argv[0].lower() == '-c' or argv[0].lower() == '--config':
+                    stopScript = False
+                    Globals._configFile = argv[1]
+                    if not exists(Globals._configFile):
+                        stopScript = True
+                        HmyBidderLog.error('Missing config file')
+
+                    config = configparser.ConfigParser()
+                    config.read(Globals._configFile)
+                    if config.get('DEFAULT','Network') != None:
+                        Globals._network_type = config.get('DEFAULT','Network')
+                    if config.get('DEFAULT', 'LogFilePath') != None:
+                        Globals._logFile = config.get('DEFAULT', 'LogFilePath')
+                        HmyBidderLog.setLogFileLocation(Globals._logFile)
+                    if config.get('DEFAULT', 'HMYDir') != None:
+                        Globals._hmyDirectory = config.get('DEFAULT', 'HMYDir')
+                    if config.get('DEFAULT', 'BLSDir') != None:
+                        Globals._blsdirPath = config.get('DEFAULT', 'BLSDir')
+                    if config.get('DEFAULT', 'ONEADDRESS') != None:
+                        Globals._walletAddress = config.get('DEFAULT', 'ONEADDRESS')
+                        if not Validator.validateONEAddress(Globals._walletAddress):
+                            HmyBidderLog.error('Wallet Address is in wrong format, please verify')
+                            stopScript = True
+                        if not HmyClient.checkIfAccountofWalletAddressExists(Globals._walletAddress):
+                            HmyBidderLog.error('Wallet Address is not in wallet accounts')
+                            stopScript = True
+                    if config.get('DEFAULT', 'Leverage') != None:
+                        Globals._leverage = int(config.get('DEFAULT', 'Leverage'))
+                    if config.get('DEFAULT', 'ShardKeys') != None:
+                        Globals._shardsKeys = config.get('DEFAULT', 'ShardKeys')
+                        if not validateShardKey(Globals._shardsKeys):
+                            HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
+                            stopScript = True
+                    if config.get('DEFAULT', 'PassphraseFile') != None:
+                        Globals._passphraseFile = config.get('DEFAULT', 'PassphraseFile')
+                    if config.get('DEFAULT', 'Slots') != None:
+                        Globals._totalSlots = int(config.get('DEFAULT', 'Slots'))
+                    if config.get('DEFAULT', 'EpochBlock') != None:
+                        Globals._epochBlock = int(config.get('DEFAULT', 'EpochBlock'))
+
+                    if stopScript:
+                        HmyClient.stopSystemdService("hmybidder.service")
+                        return False
+                    return True
                 elif argv[0].lower() == '-v' or argv[0].lower() == '--version':
                     showVersion = True                    
                 elif argv[0].lower() == '-h' or argv[0].lower() == '--help':
                     # TODO : Prepare Help
                     showHelp = True
-                elif argv[0].lower() == '--logfile':
-                    Globals._logFile = argv[1]
-                    HmyBidderLog.setLogFileLocation(Globals._logFile)
-                elif argv[0].lower() == '--blsdir':
-                    Globals._blsdirPath = argv[1]
-                elif argv[0].lower() == '--hmydir':
-                    Globals._hmyDirectory = argv[1]
-                elif argv[0].lower() == '--shards.keys':
-                    if not validateShardKey(argv[1]):
-                        HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
-                        return False
-                elif argv[0].lower() == '--wallet.address':
-                    Globals._walletAddress = argv[1]
-                    if not Validator.validateONEAddress(Globals._walletAddress):
-                        HmyBidderLog.error('Wallet Address is in wrong format, please verify')
-                        return False
-                    if not HmyClient.checkIfAccountofWalletAddressExists(Globals._walletAddress):
-                        HmyBidderLog.error('Wallet Address is not in wallet accounts')
-                        #return False 
-                elif argv[0].lower() == '--passphrase-file':
-                    Globals._passphraseFile = argv[1]
-                elif argv[0].lower() == '--epochblock':
-                    Globals._epochblock = int(argv[1])
-                elif argv[0].lower() == '--leverage':
-                    if int(argv[1]) != 0:
-                        Globals._leverage = int(argv[1])
-                    else:
-                        Globals._leverage = 0
-                elif argv[0].lower() == '--slots':
-                    Globals._totalSlots = int(argv[1])
-                    if Globals._totalSlots < 640:
-                        Globals._totalSlots = 640
         except Exception as ex:
             print(f'Command line input error {ex}')
         finally:
@@ -121,6 +138,8 @@ def getopts(argv):
     elif Globals._walletAddress == '':
         HmyBidderLog.error('Wallet Address is missing, stopping the script')
         return False
+    if Globals._epochBlock == None:
+        Globals._epochBlock = random.randint(100, 200)
     return True
 
 if __name__ == '__main__':
