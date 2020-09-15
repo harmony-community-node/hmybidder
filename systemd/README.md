@@ -18,8 +18,7 @@ Restart=always
 RestartSec=60
 User=root
 WorkingDirectory=[Your Working Directory]
-EnvironmentFile=[Your .hmybidderconfig File Location]
-ExecStart=/usr/bin/python3 [Directory of hmybidder.py]/hmybidder.py --network $Network --logfile $LogFilePath --blsdir $BLSDir --hmydir $HMYDir  --wallet.address $ONEADDRESS --leverage $Leverage --shards.keys $ShardKeys --passphrase-file $PassphraseFile --slots $Slots --epoch-block $EpochBlock
+ExecStart=/usr/bin/python3 [Directory of hmybidder.py]/hmybidder.py -c [Config File Location]
 SyslogIdentifier=hmybidder
 StartLimitInterval=0
 LimitNOFILE=65536
@@ -32,7 +31,7 @@ WantedBy=multi-user.target
 Create the .hmybidderconfig file and save it into the directory path which is given in the above service file, this config file will provide all the parameters required to run the script
 
 ```
-sudo nano [Directory]/.hmybidderconfig
+sudo nano [Directory]/hmybidder.config
 ```
 
 Provide the values to the parameters, following are example values, please provide your actual values.
@@ -49,7 +48,6 @@ PassphraseFile=[Your Wallet pass Directory]/wallet.pass
 Slots=640
 EpochBlock=178
 ```
-
 
 
 Now all required files are create, need to enable and start running the service
