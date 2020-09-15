@@ -28,7 +28,7 @@ LimitNPROC=65536
 WantedBy=multi-user.target
 ```
 
-Create the .hmybidderconfig file and save it into the directory path which is given in the above service file, this config file will provide all the parameters required to run the script
+Create the hmybidder.config file and save it into the directory path which is given in the above service file, this config file will provide all the parameters required to run the script
 
 ```
 sudo nano [Directory]/hmybidder.config
