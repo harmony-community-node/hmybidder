@@ -37,6 +37,7 @@ sudo nano [Directory]/hmybidder.config
 Provide the values to the parameters, following are example values, please provide your actual values.
 
 ```
+[DEFAULT]
 Network=mainnet
 LogFilePath=[Directory]/hmybidder.log
 HMYDir= [Your hmydir Directory] 
