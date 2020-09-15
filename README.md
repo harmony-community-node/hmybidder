@@ -1,10 +1,6 @@
 # Harmony Protocol Staking Validator auto bidder script
 
 
-### Running the script
-
-
-
 Create the hmybidder.config file and save it into the directory path which is given in the above service file, this config file will provide all the parameters required to run the script
 
 ```
@@ -14,6 +10,7 @@ sudo nano [Directory]/hmybidder.config
 Provide the values to the parameters, following are example values, please provide your actual values.
 
 ```
+[DEFAULT]
 Network=mainnet
 LogFilePath=[Directory]/hmybidder.log
 HMYDir= [Your hmydir Directory] 
@@ -25,5 +22,7 @@ PassphraseFile=[Your Wallet pass Directory]/wallet.pass
 Slots=640
 EpochBlock=178
 ```
+
+### Running the script
 
 > python3 hmybidder.py -c hmybidder.config
