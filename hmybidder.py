@@ -22,13 +22,15 @@ def main():
     if network_info != None:
         HmyBidderLog.info(network_info.to_dict())
         curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
-        HmyBidderLog.info(f'Current Epoch {curretEpoch} Global Current Epoch {Globals._currentEpoch} epochBlock {Globals._epochBlock}')
-        if network_info.blocks_to_next_epoch in range(Globals._epochBlock - 2, Globals._epochBlock + 3) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
+        HmyBidderLog.info(f'Current Epoch {curretEpoch} Global Current Epoch {Globals._currentEpoch} Block Range {Globals._upperBlock} : {Globals._lowerBlock}')
+        if network_info.blocks_to_next_epoch in range(Globals._lowerBlock, Globals._upperBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
         #if True:
             HmyBidderLog.info('Started Evaluating the BLS Keys')
             HMYBidder.startBiddingProcess(network_info)
             Globals._currentEpoch = Validator.getCurrentEpoch() # reset current epoch after running the bidding process
-    #threading.Timer(60.0, main).start() #Keep running the process every 60 seconds
+    if Globals._refreshInSeconds == None or Globals._refreshInSeconds <= 0:
+        Globals._refreshInSeconds = 60
+    threading.Timer(Globals._refreshInSeconds, main).start() #Keep running the process every N seconds
 
 def validateShardKey(shardKeys):
     valid = False
@@ -114,8 +116,18 @@ def getopts(argv):
                         Globals._passphraseFile = config.get('DEFAULT', 'PassphraseFile')
                     if config.get('DEFAULT', 'Slots') != None:
                         Globals._totalSlots = int(config.get('DEFAULT', 'Slots'))
-                    if config.get('DEFAULT', 'EpochBlock') != None:
-                        Globals._epochBlock = int(config.get('DEFAULT', 'EpochBlock'))
+                    if config.get('DEFAULT', 'BlockRange') != None:
+                        blockRange = config.get('DEFAULT', 'BlockRange')
+                        parts = blockRange.split(":")
+                        if len(parts) == 2:
+                            Globals._upperBlock = int(parts[0])
+                            if Globals._upperBlock <= 0:
+                                Globals._upperBlock = 50
+                            Globals._lowerBlock = int(parts[1])
+                            if Globals._lowerBlock <= 0:
+                                Globals._lowerBlock = 30
+                    if config.get('DEFAULT', 'RefreshInSeconds') != None:
+                        Globals._refreshInSeconds = int(config.get('DEFAULT', 'RefreshInSeconds'))
 
                     if stopScript:
                         HmyClient.stopSystemdService("hmybidder.service")
@@ -124,7 +136,6 @@ def getopts(argv):
                 elif argv[0].lower() == '-v' or argv[0].lower() == '--version':
                     showVersion = True                    
                 elif argv[0].lower() == '-h' or argv[0].lower() == '--help':
-                    # TODO : Prepare Help
                     showHelp = True
         except Exception as ex:
             print(f'Command line input error {ex}')
@@ -132,7 +143,8 @@ def getopts(argv):
             argv = argv[1:]
     
     if showHelp:
-        print(f'Print Help')
+        with open('help.txt', 'r') as file:
+            print(file.read())
     elif showVersion:
         print(f'Version {version}')
     elif Globals._walletAddress == '':

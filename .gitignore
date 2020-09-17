@@ -4,4 +4,4 @@ blockchain/__pycache__/
 utilities/__pycache__/
 hmybidder.log
 .hmybidderconfig
-SystemDSteps*.*
+SystemDSteps.txt

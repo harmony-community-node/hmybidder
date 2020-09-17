@@ -4,8 +4,6 @@ After=network-online.target
 
 [Service]
 Type=simple
-Restart=always
-RestartSec=1
 User=satish
 WorkingDirectory=/home/root/MyWork/hmybidder
 EnvironmentFile=/home/root/MyWork/hmybidder/.hmybidderconfig

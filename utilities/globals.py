@@ -8,7 +8,8 @@ class Globals:
     _defaultLogfile = 'hmybidder.log'
     _blsdirPath = '~/blsdir'
     _scriptVersion = 'v1.0'
-    _epochBlock = None
+    _lowerBlock = 30
+    _upperBlock = 50
     _currentEpoch = 0
     _walletPassFile = 'wallet.pass'
     _passphraseFile = ''
@@ -18,6 +19,7 @@ class Globals:
     _leverage = 0
     _numberOfShards = 4
     _configFile = ''
+    _refreshInSeconds = 60
     _shardsKeys = {
         'shard0' : [],
         'shard1' : [],

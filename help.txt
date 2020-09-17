@@ -1,0 +1,14 @@
+Harmony Validator Bidding Tool
+
+Usage:
+  python3 hmybidder.py [flags]
+  python3 hmybidder.py [command]
+
+Available Commands:
+  help        Help about any command
+  version     print version of the Harmony Validator Bidding Tool
+
+Flags:
+  -c, --config string             load config file.
+  -h, --help                      help for Harmony Validator Bidding Tool
+  -V, --version                   display version info

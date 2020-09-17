@@ -14,8 +14,6 @@ After=network-online.target
 
 [Service]
 Type=simple
-Restart=always
-RestartSec=60
 User=root
 WorkingDirectory=[Your Working Directory]
 ExecStart=/usr/bin/python3 [Directory of hmybidder.py]/hmybidder.py -c [Config File Location]
