@@ -20,9 +20,19 @@ def main():
 
     network_info = Validator.getNetworkLatestInfo()
     if network_info != None:
-        HmyBidderLog.info(network_info.to_dict())
+        dict_network_info = network_info.to_dict()
         curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
-        HmyBidderLog.info(f'Current Epoch {curretEpoch} Global Current Epoch {Globals._currentEpoch} Block Range {Globals._upperBlock} : {Globals._lowerBlock}')
+        validator_info = Validator.getValidatorInfo(Globals._walletAddress)
+        info_dict = {
+            'total_delegated' : f'{validator_info.total_delegation}',
+            'median_raw_stake' : dict_network_info['median_raw_staking'],
+            'leverage' : Globals._leverage,
+            'block_range' : f'{Globals._upperBlock}:{Globals._lowerBlock}',
+            'epoch_last_block' : dict_network_info['epoch_last_block'],
+            'block_number' : dict_network_info['block_number'],
+            'blocks_to_next_epoch' : dict_network_info['blocks_to_next_epoch']
+        }
+        HmyBidderLog.info(info_dict)
         if network_info.blocks_to_next_epoch in range(Globals._lowerBlock, Globals._upperBlock) and curretEpoch != Globals._currentEpoch: # checking extra 5 block to make sure not missing the bidding process
         #if True:
             HmyBidderLog.info('Started Evaluating the BLS Keys')
@@ -108,8 +118,8 @@ def getopts(argv):
                     if config.get('DEFAULT', 'Leverage') != None:
                         Globals._leverage = int(config.get('DEFAULT', 'Leverage'))
                     if config.get('DEFAULT', 'ShardKeys') != None:
-                        Globals._shardsKeys = config.get('DEFAULT', 'ShardKeys')
-                        if not validateShardKey(Globals._shardsKeys):
+                        Globals._allowedShardKeys = config.get('DEFAULT', 'ShardKeys')
+                        if not validateShardKey(Globals._allowedShardKeys):
                             HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
                             stopScript = True
                     if config.get('DEFAULT', 'PassphraseFile') != None:
@@ -145,13 +155,14 @@ def getopts(argv):
     if showHelp:
         with open('help.txt', 'r') as file:
             print(file.read())
+            return False
     elif showVersion:
         print(f'Version {version}')
-    elif Globals._walletAddress == '':
-        HmyBidderLog.error('Wallet Address is missing, stopping the script')
         return False
-    if Globals._epochBlock == None:
-        Globals._epochBlock = random.randint(100, 200)
+    elif Globals._walletAddress == '':
+        with open('help.txt', 'r') as file:
+            print(file.read())
+        return False
     return True
 
 if __name__ == '__main__':

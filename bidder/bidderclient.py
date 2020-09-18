@@ -23,7 +23,21 @@ class HMYBidder:
             for blsKey in validator_info.blsKeys:
                 if blsKey.shardId != None and blsKey.shardId >= 0:
                     currentBlsKeys[f'shard{blsKey.shardId}'].append(blsKey.blskey)
-
+            
+            parts = Globals._allowedShardKeys.split(":")
+            userAllowedKeysInShard = {
+                'shard0' : len(Globals._shardsKeys['shard0']),
+                'shard1' : len(Globals._shardsKeys['shard1']),
+                'shard2' : len(Globals._shardsKeys['shard2']),
+                'shard3' : len(Globals._shardsKeys['shard3'])
+            }
+            if len(parts) == 8:
+                userAllowedKeysInShard = {
+                    'shard0' : int(parts[1]),
+                    'shard1' : int(parts[3]),
+                    'shard2' : int(parts[5]),
+                    'shard3' : int(parts[7])
+                }
             if currentBlsKeysCount < requiredBlsKeysCount:
                 keysToAdd = requiredBlsKeysCount - currentBlsKeysCount
                 HmyBidderLog.info(f'Started adding bls keys, {keysToAdd} key(s) needs to be added')
@@ -35,7 +49,7 @@ class HMYBidder:
                             if len(currentBlsKeys[shardKey]) < len(Globals._shardsKeys[shardKey]):
                                 for key in Globals._shardsKeys[shardKey]:
                                     if not key in currentBlsKeys[shardKey]:
-                                        if len(currentBlsKeys[shardKey]) < allowedKeysInAShard:
+                                        if len(currentBlsKeys[shardKey]) < allowedKeysInAShard and len(currentBlsKeys[shardKey]) < userAllowedKeysInShard[shardKey]:
                                             success = HmyClient.addBlsKey(key)
                                             if success:
                                                 currentBlsKeys[shardKey].append(key)
@@ -44,7 +58,7 @@ class HMYBidder:
                                             else:
                                                 HmyBidderLog.info(f'Failed to add blskey {key} on Shard : {shardKey}')
                                         else:
-                                            HmyBidderLog.info(f'Shard {shardKey} already has allowed number of keys, keys allowed in shard {allowedKeysInAShard} current number of keys in shard {len(currentBlsKeys[shardKey])}')
+                                            HmyBidderLog.info(f'Shard {shardKey} already has allowed number of keys, keys allowed in shard {userAllowedKeysInShard[shardKey]} current number of keys in shard {len(currentBlsKeys[shardKey])}')
                                             break
                                     if keysToAdd == keysAdded:
                                        break

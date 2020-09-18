@@ -20,6 +20,7 @@ class Globals:
     _numberOfShards = 4
     _configFile = ''
     _refreshInSeconds = 60
+    _allowedShardKeys = ''
     _shardsKeys = {
         'shard0' : [],
         'shard1' : [],
