@@ -22,9 +22,8 @@ def main():
     if network_info != None:
         dict_network_info = network_info.to_dict()
         curretEpoch = Validator.getCurrentEpoch() # Dont run the bidding process if it is been run for current epoch
-        validator_info = Validator.getValidatorInfo(Globals._walletAddress)
         info_dict = {
-            'total_delegated' : f'{validator_info.total_delegation}',
+            'total_delegated' : f'{Validator.getTotalStakedToValidator(Globals._walletAddress)}',
             'median_raw_stake' : dict_network_info['median_raw_staking'],
             'leverage' : Globals._leverage,
             'block_range' : f'{Globals._upperBlock}:{Globals._lowerBlock}',

@@ -38,6 +38,20 @@ class HMYBidder:
                     'shard2' : int(parts[5]),
                     'shard3' : int(parts[7])
                 }
+            # Remove the keys if Shard Keys Config reduced number of keys allowed in each shard
+            HmyBidderLog.info(f'Shard Keys Config : {userAllowedKeysInShard}')
+            HmyBidderLog.info('Removing the extra keys, if Shard Keys Config reduced number of keys allowed in each shard')
+            for shardId in range(0, Globals._numberOfShards):
+                shardKey = f'shard{shardId}'
+                while len(currentBlsKeys[shardKey]) > userAllowedKeysInShard[shardKey]:
+                    key = currentBlsKeys[shardKey][0]
+                    success = HmyClient.removeBlsKey(key)
+                    if success:
+                        currentBlsKeys[shardKey].remove(key)
+                        HmyBidderLog.info(f'blskey {key} removed on Shard : {shardKey}')
+                    else:
+                        HmyBidderLog.info(f'Failed to remove blskey {key} on Shard : {shardKey}')
+            HmyBidderLog.info('Finished removing the extra keys')
             if currentBlsKeysCount < requiredBlsKeysCount:
                 keysToAdd = requiredBlsKeysCount - currentBlsKeysCount
                 HmyBidderLog.info(f'Started adding bls keys, {keysToAdd} key(s) needs to be added')
