@@ -24,6 +24,10 @@ BlockRange=50:30
 RefreshInSeconds = 60
 ```
 
+### Install python dependencies
+
+> pip3 install pyhmy
+
 ### Running the script
 
 > python3 hmybidder.py -c hmybidder.config
