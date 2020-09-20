@@ -118,6 +118,15 @@ def getopts(argv):
                         Globals._leverage = int(config.get('DEFAULT', 'Leverage'))
                     if config.get('DEFAULT', 'ShardKeys') != None:
                         Globals._allowedShardKeys = config.get('DEFAULT', 'ShardKeys')
+                        parts = Globals._allowedShardKeys.split(":")
+                        if len(parts) == 8:
+                             totalAllowedKeys = int(parts[1]) + int(parts[3]) + int(parts[5]) + int(parts[7])
+                             if (totalAllowedKeys <= 0):
+                                HmyBidderLog.error("total allowd -shards.keys cannot be zero or below, please verify")
+                                stopScript = True
+                        else:
+                            HmyBidderLog.error("-shards.keys format seems be wrong, please verify (ex: 0:1:1:3:2:0:3:1)")
+                            stopScript = True
                         if not validateShardKey(Globals._allowedShardKeys):
                             HmyBidderLog.error("BLS Keys set on --shards.keys don't match the minimum number of keys available on --blsdir")
                             stopScript = True
@@ -139,7 +148,7 @@ def getopts(argv):
                         Globals._refreshInSeconds = int(config.get('DEFAULT', 'RefreshInSeconds'))
 
                     if stopScript:
-                        HmyClient.stopSystemdService("hmybidder.service")
+                        #HmyClient.stopSystemdService("hmybidder.service")
                         return False
                     return True
                 elif argv[0].lower() == '-v' or argv[0].lower() == '--version':
