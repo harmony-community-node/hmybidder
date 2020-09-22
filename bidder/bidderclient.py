@@ -58,7 +58,10 @@ class HMYBidder:
             # Remove the keys if Shard Keys Config reduced number of keys allowed in each shard
             if currentBlsKeysCount < requiredBlsKeysCount:
                 keysToAdd = requiredBlsKeysCount - currentBlsKeysCount
-                HmyBidderLog.info(f'Started identifying bls keys to be added, {keysToAdd} key(s) needs to be added')
+                if (keysToAdd - len(arrKeysToRemove)) > 0:
+                    HmyBidderLog.info(f'Started identifying bls keys to be added, {keysToAdd - len(arrKeysToRemove)} key(s) needs to be added')
+                elif (keysToAdd - len(arrKeysToRemove)) < 0:
+                    HmyBidderLog.info(f'{keysToAdd - len(arrKeysToRemove)} key(s) needs to be removed, due to Shard Keys config change')
                 try:
                     keysAdded = 0
                     for shardId in range(0, Globals._numberOfShards):
