@@ -46,7 +46,7 @@ ShardKeys=0:4:1:3:2:5:3:2
 PassphraseFile=[Your Wallet pass Directory]/wallet.pass
 Slots=640
 BlockRange=50:30
-RefreshInSeconds = 60
+RefreshInSeconds=60
 ```
 
 
